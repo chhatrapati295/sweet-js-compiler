@@ -179,28 +179,145 @@ setStatus("idle", "Idle");
 // if (els.autorun.checked) runCode();
 
 // ---------- Autocomplete (lightweight) ----------
-const JS_SUGGESTIONS = [
-  "console.log",
-  "console.info",
-  "console.warn",
-  "console.error",
-  "Math.max",
-  "Math.min",
-  "Math.round",
-  "Math.floor",
-  "Math.ceil",
-  "Array.prototype.map",
-  "Array.prototype.filter",
-  "Array.prototype.reduce",
-  "JSON.parse",
-  "JSON.stringify",
-  "setTimeout",
-  "setInterval",
-  "clearTimeout",
-  "clearInterval",
-  "document.querySelector",
-  "document.querySelectorAll",
-];
+// Expanded suggestion catalog. Organized by category for easier maintenance.
+// You can prune or add categories without touching filtering logic below.
+const JS_SUGGESTIONS = (() => {
+  const core = [
+    "console.log",
+    "console.info",
+    "console.warn",
+    "console.error",
+    "console.table",
+    "console.time",
+    "console.timeEnd",
+    "console.group",
+    "console.groupEnd",
+    "console.assert",
+  ];
+  const math = [
+    "Math.max",
+    "Math.min",
+    "Math.round",
+    "Math.floor",
+    "Math.ceil",
+    "Math.random",
+    "Math.trunc",
+    "Math.abs",
+    "Math.sign",
+    "Math.pow",
+    "Math.sqrt",
+  ];
+  const arrays = [
+    "Array.prototype.map",
+    "Array.prototype.filter",
+    "Array.prototype.reduce",
+    "Array.prototype.forEach",
+    "Array.prototype.find",
+    "Array.prototype.findIndex",
+    "Array.prototype.some",
+    "Array.prototype.every",
+    "Array.prototype.flat",
+    "Array.prototype.flatMap",
+    "Array.prototype.includes",
+    "Array.from",
+    "Array.isArray",
+    "Array.of",
+  ];
+  const strings = [
+    "String.prototype.includes",
+    "String.prototype.startsWith",
+    "String.prototype.endsWith",
+    "String.prototype.trim",
+    "String.prototype.replace",
+    "String.prototype.slice",
+    "String.prototype.split",
+    "String.prototype.toLowerCase",
+    "String.prototype.toUpperCase",
+    "String.prototype.padStart",
+    "String.prototype.padEnd",
+  ];
+  const objects = [
+    "Object.keys",
+    "Object.values",
+    "Object.entries",
+    "Object.assign",
+    "Object.create",
+    "Object.hasOwn",
+    "Object.freeze",
+    "Object.seal",
+  ];
+  const json = ["JSON.parse", "JSON.stringify"];
+  const time = ["Date.now", "new Date", "performance.now"];
+  const timers = [
+    "setTimeout",
+    "setInterval",
+    "clearTimeout",
+    "clearInterval",
+    "requestAnimationFrame",
+    "cancelAnimationFrame",
+  ];
+  const promises = [
+    "Promise.resolve",
+    "Promise.reject",
+    "Promise.all",
+    "Promise.allSettled",
+    "Promise.race",
+    "Promise.any",
+    "async function",
+    "await",
+  ];
+  const dom = [
+    "document.querySelector",
+    "document.querySelectorAll",
+    "document.getElementById",
+    "document.createElement",
+    "document.createTextNode",
+    "document.body.appendChild",
+    "Element.classList.add",
+    "Element.classList.remove",
+    "Element.classList.toggle",
+    "Element.addEventListener",
+    "Node.removeChild",
+  ];
+  const net = ["fetch", "Headers", "Request", "Response"];
+  const storage = [
+    "localStorage.getItem",
+    "localStorage.setItem",
+    "localStorage.removeItem",
+    "sessionStorage.getItem",
+    "sessionStorage.setItem",
+  ];
+  const util = [
+    "isNaN",
+    "isFinite",
+    "parseInt",
+    "parseFloat",
+    "encodeURI",
+    "decodeURI",
+    "encodeURIComponent",
+    "decodeURIComponent",
+    "structuredClone",
+  ];
+  const errors = ["Error", "TypeError", "RangeError", "SyntaxError"];
+  // Flatten unique list
+  const all = [
+    ...core,
+    ...math,
+    ...arrays,
+    ...strings,
+    ...objects,
+    ...json,
+    ...time,
+    ...timers,
+    ...promises,
+    ...dom,
+    ...net,
+    ...storage,
+    ...util,
+    ...errors,
+  ];
+  return Array.from(new Set(all));
+})();
 
 function getCaretPosition(textarea) {
   // Compute approximate position below caret using selectionStart and textarea metrics
@@ -283,9 +400,10 @@ function handleAutocomplete() {
 
 // Editor events for autocomplete
 els.code.addEventListener("input", handleAutocomplete);
-els.code.addEventListener("keyup", (e) => {
-  // Navigate dropdown
-  if (els.acPanel.classList.contains("hidden")) return;
+// Use keydown instead of keyup so we can prevent default newline/tab insertion
+// BEFORE the browser mutates textarea content. This fixes: selecting suggestion then Enter adds newline instead of committing.
+els.code.addEventListener("keydown", (e) => {
+  if (els.acPanel.classList.contains("hidden")) return; // Panel not visible: do nothing
   const items = Array.from(els.acPanel.querySelectorAll(".autocomplete-item"));
   if (!items.length) return;
   const idx = items.findIndex((i) => i.classList.contains("active"));
@@ -301,8 +419,10 @@ els.code.addEventListener("keyup", (e) => {
     e.preventDefault();
   } else if (e.key === "Enter" || e.key === "Tab") {
     const active = items[idx >= 0 ? idx : 0];
-    if (active) commitAutocomplete(active.dataset.value);
-    e.preventDefault();
+    if (active) {
+      commitAutocomplete(active.dataset.value);
+    }
+    e.preventDefault(); // suppress newline / focus change
   } else if (e.key === "Escape") {
     hideAutocomplete();
     e.preventDefault();
