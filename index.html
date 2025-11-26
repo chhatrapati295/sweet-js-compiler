@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Sweet JS Compiler</title>
+    <link rel="stylesheet" href="style.css" />
+    <meta name="color-scheme" content="dark light" />
+</head>
+
+<body>
+    <header class="app-header">
+        <h1>Sweet JS Compiler</h1>
+        <div class="toolbar" role="toolbar" aria-label="Compiler controls">
+            <button id="run" class="primary" title="Run (Ctrl/Cmd+Enter)">Run ▶</button>
+            <label class="toggle">
+                <input type="checkbox" id="autorun" />
+                <span>Auto-run</span>
+            </label>
+            <button id="clear" title="Clear code (Alt+C)">Clear</button>
+            <label class="toggle">
+                <input type="checkbox" id="autocomplete-toggle" checked />
+                <span>Autocomplete</span>
+            </label>
+            <button id="theme" title="Toggle theme">🌓 Theme</button>
+        </div>
+    </header>
+    <main class="layout">
+        <section class="editor-pane" aria-label="Code editor">
+            <textarea id="codeinput" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"
+                placeholder="// Write JavaScript here\nconsole.log('Hello Sweet JS!')"></textarea>
+            <!-- Autocomplete dropdown -->
+            <div id="autocomplete" class="autocomplete hidden" role="listbox" aria-label="Suggestions"></div>
+        </section>
+        <section class="output-pane" aria-label="Program output">
+            <div class="output-header">
+                <span>Console Output</span>
+                <span id="status" class="status idle" aria-live="polite">Idle</span>
+            </div>
+            <pre id="output" class="output" tabindex="0" aria-live="polite"></pre>
+        </section>
+    </main>
+    <!-- Sandbox iframe for isolated execution -->
+    <iframe id="sandbox" title="Execution sandbox" sandbox="allow-scripts" class="sandbox" hidden></iframe>
+
+    <footer class="app-footer">
+        <small>Press <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd> to run. Code persists locally. Output is not
+            saved.</small>
+    </footer>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>
