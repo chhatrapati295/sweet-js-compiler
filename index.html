@@ -7,25 +7,11 @@
     <title>Sweet JS Compiler</title>
     <link rel="stylesheet" href="style.css" />
     <meta name="color-scheme" content="dark light" />
+    <link rel="icon" type="image/png" href="favicon.png" />
 </head>
 
 <body>
-    <header class="app-header">
-        <h1>Sweet JS Compiler</h1>
-        <div class="toolbar" role="toolbar" aria-label="Compiler controls">
-            <button id="run" class="primary" title="Run (Ctrl/Cmd+Enter)">Run ▶</button>
-            <label class="toggle">
-                <input type="checkbox" id="autorun" />
-                <span>Auto-run</span>
-            </label>
-            <button id="clear" title="Clear code (Alt+C)">Clear</button>
-            <label class="toggle">
-                <input type="checkbox" id="autocomplete-toggle" checked />
-                <span>Autocomplete</span>
-            </label>
-            <button id="theme" title="Toggle theme">🌓 Theme</button>
-        </div>
-    </header>
+
     <main class="layout">
         <section class="editor-pane" aria-label="Code editor">
             <textarea id="codeinput" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off"
@@ -43,6 +29,22 @@
     </main>
     <!-- Sandbox iframe for isolated execution -->
     <iframe id="sandbox" title="Execution sandbox" sandbox="allow-scripts" class="sandbox" hidden></iframe>
+    <footer class="app-header">
+        <div class="toolbar" role="toolbar" aria-label="Compiler controls">
+            <button id="run" class="primary" title="Run (Ctrl/Cmd+Enter)">Run ▶</button>
+            <button id="clear" title="Clear code (Alt+C)">Clear</button>
+            <button id="theme" title="Toggle theme">🌓 Theme</button>
+            <label class="toggle">
+                <input type="checkbox" id="autorun" />
+                <span>Auto-run</span>
+            </label>
+            <label class="toggle">
+                <input type="checkbox" id="autocomplete-toggle" checked />
+                <span>Autocomplete</span>
+            </label>
+        </div>
+        <h1>Sweet Js Compiler</h1>
+    </footer>
 
     <footer class="app-footer">
         <small>Press <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd> to run. Code persists locally. Output is not
