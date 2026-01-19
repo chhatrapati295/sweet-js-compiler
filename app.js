@@ -172,6 +172,131 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+// ========== SMART TYPING FEATURES ==========
+
+// Auto-close brackets, braces, quotes
+els.code.addEventListener("keydown", (e) => {
+  const start = els.code.selectionStart;
+  const end = els.code.selectionEnd;
+  const value = els.code.value;
+  
+  // Auto-close pairs: {}, [], (), "", ''
+  const pairs = {
+    "{": "}",
+    "[": "]",
+    "(": ")",
+    '"': '"',
+    "'": "'"
+  };
+  
+  if (pairs[e.key]) {
+    e.preventDefault();
+    const closing = pairs[e.key];
+    
+    // Insert pair around selection or at cursor
+    els.code.value = value.substring(0, start) + e.key + closing + value.substring(end);
+    els.code.selectionStart = els.code.selectionEnd = start + 1;
+    
+    // Trigger storage and autorun
+    localStorage.setItem(STORAGE_KEY_CODE, els.code.value);
+    scheduleAutoRun();
+    return;
+  }
+  
+  // Tab key for indentation (2 spaces)
+  if (e.key === "Tab") {
+    e.preventDefault();
+    
+    if (e.shiftKey) {
+      // Shift+Tab: Remove indentation
+      const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+      const lineText = value.substring(lineStart, value.indexOf("\n", start));
+      
+      if (lineText.startsWith("  ")) {
+        const beforeLine = value.substring(0, lineStart);
+        const afterLine = value.substring(lineStart);
+        els.code.value = beforeLine + afterLine.replace(/^  /, "");
+        els.code.selectionStart = els.code.selectionEnd = Math.max(lineStart, start - 2);
+      }
+    } else {
+      // Tab: Add 2 spaces
+      els.code.value = value.substring(0, start) + "  " + value.substring(end);
+      els.code.selectionStart = els.code.selectionEnd = start + 2;
+    }
+    
+    localStorage.setItem(STORAGE_KEY_CODE, els.code.value);
+    scheduleAutoRun();
+    return;
+  }
+  
+  // Smart Enter: Auto-indent new line
+  if (e.key === "Enter") {
+    e.preventDefault();
+    
+    // Find current line's indentation
+    const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+    const currentLine = value.substring(lineStart, start);
+    const indent = currentLine.match(/^\s*/)[0];
+    
+    // Check if cursor is between matching brackets: {}, [], ()
+    const prevChar = value[start - 1];
+    const nextChar = value[start];
+    const isBetweenBrackets = 
+      (prevChar === "{" && nextChar === "}") ||
+      (prevChar === "[" && nextChar === "]") ||
+      (prevChar === "(" && nextChar === ")");
+    
+    if (isBetweenBrackets) {
+      // Insert newline with extra indent, then newline with current indent
+      const extraIndent = "  ";
+      els.code.value = 
+        value.substring(0, start) + 
+        "\n" + indent + extraIndent + 
+        "\n" + indent + 
+        value.substring(start);
+      els.code.selectionStart = els.code.selectionEnd = start + 1 + indent.length + extraIndent.length;
+    } else {
+      // Add extra indent if line ends with { or [
+      const lastChar = currentLine.trim().slice(-1);
+      const extraIndent = (lastChar === "{" || lastChar === "[") ? "  " : "";
+      
+      // Insert newline with indentation
+      els.code.value = value.substring(0, start) + "\n" + indent + extraIndent + value.substring(end);
+      els.code.selectionStart = els.code.selectionEnd = start + 1 + indent.length + extraIndent.length;
+    }
+    
+    localStorage.setItem(STORAGE_KEY_CODE, els.code.value);
+    scheduleAutoRun();
+    return;
+  }
+  
+  // Auto-close on closing bracket - skip over if next char is the same
+  if (e.key === "}" || e.key === "]" || e.key === ")") {
+    const nextChar = value[start];
+    if (nextChar === e.key) {
+      e.preventDefault();
+      els.code.selectionStart = els.code.selectionEnd = start + 1;
+      return;
+    }
+  }
+  
+  // Delete matching pair when backspace on opening bracket
+  if (e.key === "Backspace" && start === end) {
+    const prevChar = value[start - 1];
+    const nextChar = value[start];
+    const pairsReverse = { "{": "}", "[": "]", "(": ")", '"': '"', "'": "'" };
+    
+    if (pairsReverse[prevChar] === nextChar) {
+      e.preventDefault();
+      els.code.value = value.substring(0, start - 1) + value.substring(start + 1);
+      els.code.selectionStart = els.code.selectionEnd = start - 1;
+      localStorage.setItem(STORAGE_KEY_CODE, els.code.value);
+      scheduleAutoRun();
+      return;
+    }
+  }
+});
+
 // Initial status
 setStatus("idle", "Idle");
 
